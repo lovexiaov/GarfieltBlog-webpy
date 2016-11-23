@@ -20,7 +20,7 @@ from install import *
 web.config.debug = Setting.is_debug
 
 urls = (
-    #Front
+    # Front
     '/', 'Index',
     '/page/(\d+)', 'Index',
     '/category/(.+)/page/(\d+)', 'Category',
@@ -37,7 +37,7 @@ urls = (
     '/valiimage', 'Valiimage',
     '/install', 'Install',
     '/install/(\d+)', 'Install',
-    #Backend
+    # Backend
     Setting.login_url, 'Login',
     '/manage/main/(\w+)', 'Manage',
     '/manage/postlist', 'ManagePostlist',
@@ -62,19 +62,20 @@ urls = (
     '/manage/result/(.+)', 'ManageResult'
 )
 
-#Init Callback interface
+# Init Callback interface
 app = web.application(urls, globals())
 if Setting.runtime == "SAE":
     import sae
+
     application = sae.create_wsgi_app(app.wsgifunc())
 elif Setting.runtime == "BAE":
     from bae.core.wsgi import WSGIApplication
+
     application = WSGIApplication(app.wsgifunc())
 else:
     pass
 
-
-#Session Regedit
+# Session Regedit
 web.config.session_parameters['cookie_name'] = 'Garfitle_session'
 web.config.session_parameters['cookie_domain'] = None
 web.config.session_parameters['timeout'] = 86400
@@ -83,9 +84,10 @@ web.config.session_parameters['ignore_change_ip'] = True
 web.config.session_parameters['secret_key'] = 'GarfieltSoJlRmFs6H2Ll'
 web.config.session_parameters['expired_message'] = 'Session expired'
 
-#Init Session
+# Init Session
 if mc:
     from libs.session import MemcacheStore
+
     store = MemcacheStore(mc)
 elif Setting.runtime == "LOCAL":
     store = web.session.DiskStore('sessions')
@@ -94,9 +96,10 @@ else:
 GarfieltSession = web.session.Session(app, store, initializer={'user': ""})
 
 
-#Regedit Session Hook for global Auth
+# Regedit Session Hook for global Auth
 def sessionHook():
     web.ctx.session = GarfieltSession
+
 
 def authHook(handle):
     path = web.ctx.fullpath.lower()
@@ -107,9 +110,10 @@ def authHook(handle):
             raise web.seeother('/')
     return handle()
 
+
 app.add_processor(web.loadhook(sessionHook))
 app.add_processor(authHook)
 
-#Local run
+# Local run
 if __name__ == "__main__":
     app.run()

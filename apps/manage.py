@@ -18,13 +18,15 @@ from base import Render as R
 from libs.common import *
 from libs.utils import *
 
+
 class Login:
     def GET(self):
         return R.render('login')
-        
+
     def POST(self):
-        authdata = web.input(username = '', passwd = '')
+        authdata = web.input(user='', passwd='')
         userinfo = model.Kvdata.get(authdata.user)
+
         if userinfo:
             if userinfo['passwd'] == hash_md5(authdata.passwd):
                 web.ctx.session.user = authdata.user
@@ -32,22 +34,24 @@ class Login:
         else:
             raise web.seeother('/')
 
+
 class Manage:
     def GET(self, frame):
         frames = ['index', 'top', 'menu']
         if frame in frames:
             return web.template.frender('template/manage/' + frame + '.html')()
         if frame == 'main':
-            totalpost =  model.Posts.count()
-            return R.render('main', totalpost = totalpost)
+            totalpost = model.Posts.count()
+            return R.render('main', totalpost=totalpost)
+
 
 class ManagePostlist:
-    def GET(self, action ='view', page = 1):
+    def GET(self, action='view', page=1):
         if action == 'delete':
-            model.Posts.delete(pid)
+            model.Posts.remove(page)
         cats = model.Category.get_all()
         curpage = int(page)
-        totalpost =  model.Posts.count()
+        totalpost = model.Posts.count()
         pagestr = page_navigation('/manage/post', curpage, 15, totalpost)
         categorys = {}
         for c in cats:
@@ -58,7 +62,7 @@ class ManagePostlist:
 
 
 class ManagePost:
-    def GET(self, pid = 0):
+    def GET(self, pid=0):
         if pid:
             epost = model.Posts.get_by_id(pid)
         else:
@@ -67,11 +71,11 @@ class ManagePost:
         tags = model.Tags.get_all()
         categorys = model.Category.get_all()
         return R.render('post', epost=epost, categorys=categorys, tags=tags)
-        
-    def POST(self, pid = 0):
-        post = web.input(ptitle = '', ptstitle = '', pcategory = 0,
-                         pcontent = '', ptype = 0, ptags = '', pstatus = 1,
-                         pontop = 0, pcomment = 1)
+
+    def POST(self, pid=0):
+        post = web.input(ptitle='', ptstitle='', pcategory=0,
+                         pcontent='', ptype=0, ptags='', pstatus=1,
+                         pontop=0, pcomment=1)
         tags = post['ptags']
         if tags:
             tags = tags.replace(" ", "")
@@ -85,29 +89,29 @@ class ManagePost:
         if tags:
             otags = dict([[t.tag_name, t.tag_id] for t in model.Tags.get_all()])
             for tag in taglist:
-                if tag not in otags.keys() and len(tag)>1:
+                if tag not in otags.keys() and len(tag) > 1:
                     tid = model.Tags.creat(tag)
                     model.Relations.creat(tid, pid)
                 else:
                     model.Relations.creat(otags[tag], pid)
         return R.result('success', '/manage/postlist', '文章保存成功')
-        
+
 
 class ManageResult:
     def GET(self, redirecturl):
-        return render.result(redirecturl)
+        return R.render.result(redirecturl)
 
 
 class ManageCategory:
-    def GET(self, action = 'view', cid = 0):
+    def GET(self, action='view', cid=0):
         ecategory = model.Category.get_by_id(cid)
         if action == 'delete':
             model.Category.delete(cid)
         categorys = model.Category.get_all()
-        return R.render('category', ecategory = ecategory, categorys = categorys)
-        
+        return R.render('category', ecategory=ecategory, categorys=categorys)
+
     def POST(self):
-        cats = web.input(catid = 0, cattype = 0, catname = '', catshort = '', catdes = '')
+        cats = web.input(catid=0, cattype=0, catname='', catshort='', catdes='')
         if cats.catid:
             model.Category.modify(cats.catid, cats)
         else:
@@ -116,13 +120,13 @@ class ManageCategory:
 
 
 class ManageTags:
-    def GET(self, tid = 0):
+    def GET(self, tid=0):
         tags = model.Tags.get_all()
         etag = model.Tags.get_by_id(tid)
         return R.render('tags', etag=etag, tags=tags)
-        
+
     def POST(self):
-        ntag = web.input(tagid = 0, tagname = '')
+        ntag = web.input(tagid=0, tagname='')
         if ntag.tagid:
             model.Tags.modify(ntag.tagid, ntag.tagname)
         else:
@@ -130,13 +134,12 @@ class ManageTags:
         raise web.seeother('/manage/tags')
 
 
-
 class ManageData:
-    def GET(self, action = ''):
+    def GET(self, action=''):
         return R.render('data')
-        
+
     def POST(self):
-        spost = web.input(execsql = '')
+        spost = web.input(execsql='')
         execsql = ''
         if spost.execsql:
             execsql = spost.execsql
@@ -145,7 +148,7 @@ class ManageData:
             print r
             for t in r:
                 print t
-        return render.data(execsql, results)
+        return R.render.data(execsql, results)
 
 
 class ManageAttachment:
@@ -159,25 +162,25 @@ class ManageAttachment:
                 ifilepath = os.path.join(uploadDir, ifile)
                 filetime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.stat(ifilepath).st_ctime))
                 if os.path.isdir(ifilepath):
-                    filedata.append({'ftype':'D', 'fname':ifile, 'fedittime':filetime})
+                    filedata.append({'ftype': 'D', 'fname': ifile, 'fedittime': filetime})
                 else:
-                    filedata.append({'ftype':'f', 'fname':ifile, 'fedittime':filetime})
+                    filedata.append({'ftype': 'f', 'fname': ifile, 'fedittime': filetime})
             print filedata
-        return R.render('attachment', filedata = filedata)
-        
+        return R.render('attachment', filedata=filedata)
+
     def POST(self):
-        spost = web.input(execsql = '')
+        spost = web.input(execsql='')
         execsql = ''
         if spost.execsql:
             execsql = spost.execsql
             results = model.execSql(execsql)
-        
-        return render.sql(execsql, results)
+
+        return R.render.sql(execsql, results)
 
 
 # Comments
 class ManageComment:
-    def GET(self, action = 'view', cid = 0):
+    def GET(self, action='view', cid=0):
         if action == 'delete':
             model.Comments.remove(cid)
         comments = model.Comments.get_all()
@@ -185,15 +188,15 @@ class ManageComment:
 
 
 class ManageLinks:
-    def GET(self, action = 'view', lid = 0):
+    def GET(self, action='view', lid=0):
         if action == 'delete':
             model.Links.remove(lid)
         elink = model.Links.get_by_id(lid)
         links = model.Links.get_all()
         return R.render('links', elink=elink, links=links)
-        
+
     def POST(self):
-        nlink = web.input(linkid = 0, linkname = '', linkurl = '', linkdes = '')
+        nlink = web.input(linkid=0, linkname='', linkurl='', linkdes='')
         if nlink.linkid:
             model.Links.modify(nlink.linkid, nlink)
         else:
@@ -214,14 +217,15 @@ class ManageSetting:
                     if os.path.isdir(ifilepath):
                         themes.append(ifile)
         return R.render('setting', esetting=esetting, themes=themes)
+
     def POST(self):
-        nsetting = web.input(webtitle = 'Garfielt Blog',
-                             websubtitle = 'Welcome to Mysite!',
-                             webdes = 'The Garfielt Blog',
-                             webkeys = 'Garfielt, Blog, Python, web.py',
-                             webcdn = '',
-                             timeadjust = 0,
-                             listnum = 10)
+        nsetting = web.input(webtitle='Garfielt Blog',
+                             websubtitle='Welcome to Mysite!',
+                             webdes='The Garfielt Blog',
+                             webkeys='Garfielt, Blog, Python, web.py',
+                             webcdn='',
+                             timeadjust=0,
+                             listnum=10)
         model.Kvdata.set('setting', nsetting)
         Setting.config = model.Kvdata.get("setting")
         return R.result('success', '/manage/setting', '设置修改成功')
@@ -230,9 +234,9 @@ class ManageSetting:
 class ManageUser:
     def GET(self):
         return R.render('user', user=web.ctx.session.user, msg='')
-        
+
     def POST(self):
-        ninfo = web.input(newname = '', oldpwd = '', newpwd = '', repwd = '')
+        ninfo = web.input(newname='', oldpwd='', newpwd='', repwd='')
         if ninfo.oldpwd:
             userinfo = model.Kvdata.get(web.ctx.session.user)
             if userinfo:
@@ -240,11 +244,12 @@ class ManageUser:
                     if ninfo.newname:
                         model.Kvdata.modify(web.ctx.session.user, ninfo.newname)
                         web.ctx.session.user = ninfo.newname
-                        return R.render('user', user=web.ctx.session.user, msg = "用户名修改成功")
+                        return R.render('user', user=web.ctx.session.user, msg="用户名修改成功")
                     if ninfo.newpwd and ninfo.newpwd == ninfo.repwd:
                         model.Kvdata.set(web.ctx.session.user, {'passwd': hash_md5(ninfo.newpwd)})
-                        return R.render('user', user=web.ctx.session.user, msg = "密码修改成功")
+                        return R.render('user', user=web.ctx.session.user, msg="密码修改成功")
         raise web.seeother('/manage/user')
+
 
 class ManageFiles:
     def GET(self):
@@ -252,7 +257,7 @@ class ManageFiles:
         if minfo.path == "":
             curdir = "static/uploads/"
         else:
-             curdir = minfo.path
+            curdir = minfo.path
         home = os.getcwd()
         uploadDir = os.path.join(home, curdir)
         print uploadDir
@@ -288,15 +293,16 @@ class ManageFiles:
             return json_data(result)
 
 
-class ManageUpload:      
+class ManageUpload:
     def POST(self):
-        uploads = web.input(imgFile = {})
+        uploads = web.input(imgFile={})
         if 'imgFile' in uploads:
-            filepath = uploads.imgFile.filename.replace('\\','/')
+            filepath = uploads.imgFile.filename.replace('\\', '/')
             filename = filepath.split('/')[-1]
             Extension = os.path.splitext(filename)[1]
-            filename = Setting.upload_dir + format_time(tformat = "%Y%m") + '/' + format_time(tformat = "%Y-%m-%d-%H-%M-%S") + Extension
-            try:            
+            filename = Setting.upload_dir + format_time(tformat="%Y%m") + '/' + format_time(
+                tformat="%Y-%m-%d-%H-%M-%S") + Extension
+            try:
                 filename = save(filename, uploads.imgFile.file.read())
             except Exception:
                 print Exception
