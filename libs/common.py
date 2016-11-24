@@ -15,23 +15,25 @@ import re
 from libs.utils import *
 from setting import Setting
 
-try: 
-   import cPickle as pickle
+try:
+    import cPickle as pickle
 except ImportError:
-   import pickle
+    import pickle
 
-HTML_RE = re.compile(r"""<[^>]+>""", re.I|re.M|re.S)
+HTML_RE = re.compile(r"""<[^>]+>""", re.I | re.M | re.S)
 mc = None
 
 if Setting.runtime == "SAE":
     import pylibmc
     from sae.storage import Bucket
+
     bucket = Bucket(Setting.bucket_domain)
     try:
         mc = pylibmc.Client()
     except:
         error("SAE Memcache Error")
-        
+
+
     def save(filename, filedata):
         bucket.put_object(filename, filedata)
         return bucket.generate_url(filename)
@@ -39,18 +41,21 @@ if Setting.runtime == "SAE":
 elif Setting.runtime == "BAE":
     try:
         from bae.api.memcache import BaeMemcache
+
         mc = BaeMemcache()
     except:
         error("BAE Memcache Error")
-    
+
     from bae.core import const
     from bae.api import bcs
     from bae.api import logging
-    
+
     BaeHost = const.BCS_ADDR
-    #logging.debug(BaeHost + Setting.AK + Setting.SK)
+    # logging.debug(BaeHost + Setting.AK + Setting.SK)
     baebcs = bcs.BaeBCS(BaeHost, const.ACCESS_KEY, const.SECRET_KEY)
     logging.debug(baebcs.get_acl(Setting.bucket_domain, ' '))
+
+
     def save(filename, filedata):
         filename = filename.replace('/', '-')
         errcode, response = baebcs.put_object(Setting.bucket_domain, filename, filedata)
@@ -61,9 +66,12 @@ else:
     try:
         if Setting.memcache:
             from libs import memcache
+
             mc = memcache.Client([Setting.memcache], debug=0)
     except:
         error("Memcache Error")
+
+
     def save(filename, filedata):
         f = None
         try:
@@ -80,11 +88,14 @@ try:
 except:
     mc = None
 
+
 def tablename(table):
     return Setting.db_prefix + table
 
+
 def cache_file_name(cacheName):
     return Setting.data_dir + "/cache/" + cacheName + ".inc"
+
 
 def set_cache(cacheName, cacheValue, ttl):
     if mc:
@@ -93,6 +104,7 @@ def set_cache(cacheName, cacheValue, ttl):
         if 'Page' in cacheName:
             cacheValue = str(cacheValue)
         pickle.dump(cacheValue, open(cache_file_name(cacheName), "wb"))
+
 
 def get_cache(cacheName):
     if mc:
@@ -103,7 +115,8 @@ def get_cache(cacheName):
             return pickle.load(open(cacheFile, "rb"))
     return None
 
-def section_cache(sectionname, ttl = Setting.cache_time):
+
+def section_cache(sectionname, ttl=Setting.cache_time):
     def cache(func):
         def _cache(*args, **kwargs):
             if not Setting.is_cache: return func(*args, **kwargs)
@@ -116,8 +129,11 @@ def section_cache(sectionname, ttl = Setting.cache_time):
                 body = func(*args, **kwargs)
                 set_cache(cachename, body, ttl)
             return body
+
         return _cache
+
     return cache
+
 
 def post_format(post):
     if post.post_url == "":
@@ -134,15 +150,14 @@ def post_format(post):
         else:
             post.content = HTML_RE.sub('', post.post_content[:int(Setting.config['subtitle'])])
 
+
 def page_navigation(baseurl, curpage, perpage, total):
-    tpage = int(total)/int(perpage)
-    if int(total)%int(perpage):tpage = tpage + 1
+    tpage = int(total) / int(perpage)
+    if int(total) % int(perpage): tpage = tpage + 1
     pagenavigation = ''
-    for i in range(1, (tpage+1)):
+    for i in range(1, (tpage + 1)):
         if curpage == i:
             pagenavigation += "<li class='current'> %d </li>" % i
         else:
             pagenavigation += "<li><a href='%s/page/%d'> %d </a></li>" % (baseurl, i, i)
     return pagenavigation
-
-

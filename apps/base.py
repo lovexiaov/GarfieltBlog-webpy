@@ -17,6 +17,7 @@ from libs.common import *
 
 Setting.config = model.Kvdata.get("setting")
 
+
 class _Render:
     def __init__(self):
         self.tplfunc = {}
@@ -24,7 +25,7 @@ class _Render:
         self.tpldir = ''
         self.tpldata['version'] = Setting.version
         self.tplfunc['UIModule'] = self.UIModule
-    
+
     def common_data(self):
         self.tpldata['categorys'] = model.Category.get_all()
         self.tpldata['recent_posts'] = model.Posts.get_related()
@@ -33,31 +34,32 @@ class _Render:
         self.tpldata['links'] = model.Links.get_all()
         self.tpldata['recent_comments'] = model.Comments.get_recent()
         self.tplfunc['Post_format'] = post_format
-    
+
     def render(self, tplname, **kwargs):
         self.tpldata['setting'] = Setting.config
         for key in kwargs:
             self.tpldata[key] = kwargs[key]
         return getattr(self.robject(), tplname)(self.tpldata)
-    
+
     def UIModule(self, tplname):
         return self.render(tplname)
-        
+
     def addtplfunc(self, func, quotfunc):
         self.tplfunc[func] = quotfunc
-    
+
     def gettpldir(self):
         path = web.ctx.fullpath.lower()
         if path.startswith('/manage') or path == Setting.login_url:
             return 'manage'
         else:
             return Setting.config['template']
-    
+
     def result(self, flag, url, msg):
         return self.render('result', flag=flag, url=url, msg=msg)
-    
+
     def robject(self):
         return web.template.render('template/' + self.gettpldir(), globals=self.tplfunc)
+
 
 Render = _Render()
 
