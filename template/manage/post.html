@@ -65,17 +65,16 @@ $def with (tpldata)
 			  <input type="text" name="ptitle" id="ptitle" value="${tpldata['epost'].post_title}" onBlur="Trans();" onClick="if(this.value=='在这里键入标题')this.value='';" class="width-100" />
 			</li>
 			<li>
-			  <select name="pcategory" class="selecter width-50" id="pcategory">
+			  分类: <select name="pcategory" class="selecter width-50" id="pcategory">
         $for category in tpldata['categorys']:
-          $if category['category_type'] == 0:
-            <option value="${category['category_id']}" 
+            <option value="${category['category_id']}"
             $if category['category_id'] == tpldata['epost'].post_category:
               selected
             >${category['category_name']}</option>
         </select>
 			</li>
 			<li>
-			  <input type="text" name="ptstitle" id="ptstitle" value="${tpldata['epost'].post_url}" class="width-100" />
+			  文章显示 URL:<input type="text" name="ptstitle" id="ptstitle" value="${tpldata['epost'].post_url}" class="width-80" />
 			</li>
 			<li>
 				<textarea name="pcontent" id="pcontent" style="width:100%;height:480px;visibility:hidden;">${tpldata['epost'].post_content}</textarea>

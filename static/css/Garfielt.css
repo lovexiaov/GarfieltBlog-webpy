@@ -187,6 +187,11 @@ input[type="password"] {
 input.width-100 {
   width: 98.6%;
 }
+
+input.width-80 {
+  width: 80%;
+}
+
 input.width-50 {
   width: 50%;
 }
