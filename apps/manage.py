@@ -106,12 +106,16 @@ class ManageCategory:
     def GET(self, action='view', cid=0):
         ecategory = model.Category.get_by_id(cid)
         if action == 'delete':
-            model.Category.delete(cid)
+            # model.Category.delete(where='category_id = $cid', vars=locals())
+            model.Category.remove(cid)
         categorys = model.Category.get_all()
         return R.render('category', ecategory=ecategory, categorys=categorys)
 
     def POST(self):
         cats = web.input(catid=0, cattype=0, catname='', catshort='', catdes='')
+
+        if not cats.catshort: cats.catshort = cats.catname
+
         if cats.catid:
             model.Category.modify(cats.catid, cats)
         else:

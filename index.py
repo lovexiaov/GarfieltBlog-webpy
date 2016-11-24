@@ -64,16 +64,6 @@ urls = (
 
 # Init Callback interface
 app = web.application(urls, globals())
-if Setting.runtime == "SAE":
-    import sae
-
-    application = sae.create_wsgi_app(app.wsgifunc())
-elif Setting.runtime == "BAE":
-    from bae.core.wsgi import WSGIApplication
-
-    application = WSGIApplication(app.wsgifunc())
-else:
-    pass
 
 # Session Regedit
 web.config.session_parameters['cookie_name'] = 'Garfitle_session'

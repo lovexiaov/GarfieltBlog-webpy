@@ -11,7 +11,7 @@ License: MIT (see LICENSE.txt for details)
 """
 
 import web
-import json
+
 from libs.common import *
 from libs.utils import *
 from setting import Setting
@@ -19,7 +19,8 @@ from setting import Setting
 if Setting.db_type == 'sqlite':
     mdb = sdb = web.database(dbn=Setting.db_type, db=Setting.data_dir + "/" + Setting.db_name)
 elif Setting.db_type == 'mysql':
-    mdb = sdb = web.database(dbn=Setting.db_type, host=Setting.db_host, port=Setting.db_port, db=Setting.db_name,
+    mdb = sdb = web.database(dbn=Setting.db_type, host=Setting.db_host, port=Setting.db_port,
+                             db=Setting.db_name,
                              user=Setting.db_user, passwd=Setting.db_passwd)
 else:
     pass
@@ -71,9 +72,9 @@ class _Posts(baseModel):
     def count(self, types='', key=None):
         if types == 'tag':
             return self.query("SELECT count(*) as total FROM " + tablename(
-                "posts") + " WHERE post_id in (select r.pid from " + tablename(
-                "relations") + " r left join " + tablename(
-                "tags") + " t on r.tid=t.tag_id where t.tag_name='%s')" % key)[0]['total']
+                    "posts") + " WHERE post_id in (select r.pid from " + tablename(
+                    "relations") + " r left join " + tablename(
+                    "tags") + " t on r.tid=t.tag_id where t.tag_name='%s')" % key)[0]['total']
         elif types == 'category':
             return self.query("select count(*) as total from " + \
                               self.tablename + "  where post_category=%d" % key)[0]['total']
@@ -96,10 +97,11 @@ class _Posts(baseModel):
 
     def get_by_tagname(self, tagname, plimit=10, poffset=0):
         try:
-            return self.query("SELECT * FROM " + tablename("posts") + " WHERE post_id in (select r.pid from " + \
-                              tablename("relations") + " r left join " + tablename("tags") + \
-                              " t on r.tid=t.tag_id where t.tag_name='%s') LIMIT %d OFFSET %d" % (
-                              tagname, int(plimit), int(poffset - 1) * int(plimit)))
+            return self.query(
+                "SELECT * FROM " + tablename("posts") + " WHERE post_id in (select r.pid from " + \
+                tablename("relations") + " r left join " + tablename("tags") + \
+                " t on r.tid=t.tag_id where t.tag_name='%s') LIMIT %d OFFSET %d" % (
+                    tagname, int(plimit), int(poffset - 1) * int(plimit)))
         except IndexError:
             return self.model()
 
@@ -130,10 +132,12 @@ class _Posts(baseModel):
             return None
 
     def viewcount(self, pid):
-        return self.query("update " + self.tablename + " set post_view = post_view + 1 where post_id=%d" % pid)
+        return self.query(
+            "update " + self.tablename + " set post_view = post_view + 1 where post_id=%d" % pid)
 
     def commcount(self, pid):
-        return self.query("update " + self.tablename + " set post_com_num = post_com_num + 1 where post_id=%d" % pid)
+        return self.query(
+            "update " + self.tablename + " set post_com_num = post_com_num + 1 where post_id=%d" % pid)
 
     def creat(self, npost):
         return self.insert(post_date=format_time(),
@@ -361,8 +365,9 @@ class _Relations(baseModel):
         return self.select(where='tid=$tid', vars=locals())
 
     def get_by_pid(self, pid):
-        return self.query("select t.tag_name from " + tablename("tags") + " t left join " + tablename(
-            "relations") + " r on t.tag_id=r.tid where r.pid=%d" % pid)
+        return self.query(
+            "select t.tag_name from " + tablename("tags") + " t left join " + tablename(
+                    "relations") + " r on t.tag_id=r.tid where r.pid=%d" % pid)
 
     def creat(self, tid, pid):
         return self.insert(tid=tid, pid=pid)

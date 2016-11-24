@@ -11,7 +11,7 @@ License: MIT (see LICENSE.txt for details)
 """
 
 import web
-from setting import Setting
+
 from libs.common import *
 
 render = web.template.render('template/manage')
