@@ -11,62 +11,67 @@ License: MIT (see LICENSE.txt for details)
 """
 
 import web
-from setting import Setting
-from models import model
+
 from base import Render as R
 from libs.common import *
 from libs.utils import *
 from libs.validate import validate
+from models import model
+
 
 class Index:
     @section_cache('Page_index')
-    def GET(self, page = 1):
+    def GET(self, page=1):
         curpage = int(page)
-        totalpost =  model.Posts.count()
+        totalpost = model.Posts.count()
         pagestr = page_navigation('', curpage, Setting.config['listnum'], totalpost)
         posts = model.Posts.get_all(None, Setting.config['listnum'], curpage)
         R.common_data()
-        return R.render('index', posts = posts, pagestr = pagestr)
-        
-        
+        return R.render('index', posts=posts, pagestr=pagestr)
+
+
 class Category:
     @section_cache('Page_category')
-    def GET(self, kname = "", page = 1):
+    def GET(self, kname="", page=1):
         if kname:
             category_shortname = check_str(kname)
             category = model.Category.get_by_short(category_shortname)
             if category.category_id:
                 curpage = int(page)
-                totalpost =  model.Posts.count('category', category.category_id)
-                pagestr = page_navigation('/category/' + kname, curpage, Setting.config['listnum'], totalpost)
-                posts = model.Posts.get_all(category.category_id, Setting.config['listnum'], curpage)
+                totalpost = model.Posts.count('category', category.category_id)
+                pagestr = page_navigation('/category/' + kname, curpage, Setting.config['listnum'],
+                                          totalpost)
+                posts = model.Posts.get_all(category.category_id, Setting.config['listnum'],
+                                            curpage)
                 R.common_data()
-                return R.render('index', posts = posts, pagestr = pagestr)
+                return R.render('index', posts=posts, pagestr=pagestr)
             raise web.seeother('/')
 
 
 class Tag:
     @section_cache('Page_tag')
-    def GET(self, kname = "", page = 1):
+    def GET(self, kname="", page=1):
         if kname:
             tagname = check_str(kname)
             curpage = int(page)
-            totalpost =  model.Posts.count('tag', tagname)
-            pagestr = page_navigation('/tag/' + kname, curpage, Setting.config['listnum'], totalpost)
+            totalpost = model.Posts.count('tag', tagname)
+            pagestr = page_navigation('/tag/' + kname, curpage, Setting.config['listnum'],
+                                      totalpost)
             posts = model.Posts.get_by_tagname(tagname, Setting.config['listnum'], curpage)
             R.common_data()
-            return R.render('index', posts = posts, pagestr = pagestr)
+            return R.render('index', posts=posts, pagestr=pagestr)
 
 
 class Search:
-    def POST(self, page = 1):
-        spost = web.input(s = '')
+    def POST(self, page=1):
+        spost = web.input(s='')
         skey = spost.s
         skey = skey.encode("utf-8")
         pagestr = ''
-        posts = model.execSql("select * from " + tablename("Posts") + " where post_title like '%" + skey + "%'")
+        posts = model.execSql(
+            "select * from " + tablename("Posts") + " where post_title like '%" + skey + "%'")
         R.common_data()
-        return R.render('index', posts = posts, pagestr = pagestr)
+        return R.render('index', posts=posts, pagestr=pagestr)
 
 
 class Post:
@@ -92,7 +97,7 @@ class Post:
 
 class Comment:
     def POST(self, postid=0):
-        comment = web.input(author = '', mail = '', url='', text = '')
+        comment = web.input(author='', mail='', url='', text='')
         model.Comments.creat(postid, comment)
         model.Posts.commcount(int(postid))
         raise web.seeother('/blog/%s.html' % str(postid))
@@ -105,7 +110,7 @@ class Favicon:
 
 class Valicode:
     def GET(self):
-        web.header('Content-Type','image/gif')
+        web.header('Content-Type', 'image/gif')
         vcode, vimgbuf = validate()
         web.ctx.session.vcode = vcode.lower()
         return vimgbuf
@@ -124,7 +129,7 @@ class Trans:
                 resjosn = json.loads(response)
                 transTitle = resjosn['trans_result'][0]['dst']
                 transTitle = safe_str(transTitle)
-            except :
+            except:
                 transTitle = Pytrans(ptitle)
         else:
             transTitle = Pytrans(ptitle)
@@ -133,5 +138,3 @@ class Trans:
         if post.post_id:
             transTitle = "%s_%d" % (transTitle, int(timestamp()))
         return "{\"transTitle\":\"" + transTitle + "\"}"
-
-        
