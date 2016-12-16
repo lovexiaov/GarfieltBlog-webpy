@@ -29,8 +29,5 @@ $def with (tpldata)
     <div id="pagenav">
         <a title="首页" href="/">首 页</a>
         $for category in tpldata['categorys']:
-            $if category['category_type'] == 1:
-                <a title="${category['category_description']}" href="${category['category_short']}">${category['category_name']}</a>
-            $else:
-                <a title="${category['category_description']}" href="/category/${category['category_short']}">${category['category_name']}</a>
+            <a title="${category['category_description']}" href="/category/${category['category_short']}">${category['category_name']}</a>
     </div>
